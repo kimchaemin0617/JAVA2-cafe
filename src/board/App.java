@@ -1,3 +1,5 @@
+// 실행시 무조건 좋아요를 누른 것으로 표현되는거 수정 중
+
 package board;
 
 import java.time.LocalDate;
@@ -16,14 +18,21 @@ public class App {
 	private ArrayList<Article> articles = new ArrayList<>();
 	private ArrayList<Comment> comments = new ArrayList<>();
 	private ArrayList<Member> members = new ArrayList<>();
+	private ArrayList<Like> likes = new ArrayList<>();
 	private int articleNo = 1;
 	private Member loginedUser = null; // 로그인한 유저
 
 	// 메서드 선언
 	public void run() {
 		makeTestData();
-		Member TestId = new SpecialMember("qwe", "qwe", "qwe", 99999);
-		members.add(TestId);
+		Member TestId1 = new SpecialMember("qwe", "qwe", "테스트 아이디 1", 99999);
+		Member TestId2 = new SpecialMember("asd", "asd", "테스트 아이디 2", 99999);
+		Member TestId3 = new GeneralMember("zxc", "zxc", "테스트 아이디 3");
+		
+		members.add(TestId1);
+		members.add(TestId2);
+		members.add(TestId3);
+		
 		loginedUser = members.get(0);
 
 		while (true) {
@@ -138,19 +147,15 @@ public class App {
 		int index = getIndexByAritlceNo(no);
 		Article a = articles.get(index);
 		if (index != -1) {
-			readPost(index);
-			readComment(no);
+			readPost(a);
 			readProcess(a);
-
 		} else {
 			System.out.println("없는 게시물입니다.");
 		}
 
 	}
 
-	public void readPost(int index) {
-		Article a = articles.get(index);
-
+	public void readPost(Article a) {
 		System.out.println("==== " + a.getNo() + "번 게시물 ====");
 		System.out.println("번호 : " + a.getNo());
 		System.out.println("제목 : " + a.getTitle());
@@ -159,26 +164,36 @@ public class App {
 		System.out.println("-------------------");
 		System.out.println("작성자 : 익명");
 		System.out.println("등록날짜: " + a.getRegDate());
-
-	}
-
-	public void readComment(int index) {
 		System.out.println("======= 댓글 =======");
 		if (comments.size() == 0) {
 			System.out.println("****등록된 댓글이 없습니다.****");
 		}
 		for (int i = 0; i < comments.size(); i++) {
 			Comment c = comments.get(i);
-			if (c.getPostNo() == index) {
+			if (c.getPostNo() == a.getNo()) {
 				System.out.println("내용: " + c.getBody());
 				System.out.println("작성자: " + c.getWriter());
 				System.out.println("작성일: " + c.getRegDate());
 				System.out.println("===================");
-			}
-			else {
+			} else {
 				System.out.println("****등록된 댓글이 없습니다.****");
 			}
 		}
+		int likeNum = 0;
+		int likedNum = userLiked(a.getNo());
+		
+		if (likedNum == -1) {
+			System.out.print("🤍");
+		} else {
+			System.out.print("🖤");
+		}
+		for(int i = 0; i < likes.size(); i++) {
+			Like l = likes.get(i);
+			if(l.getPostNo() == a.getNo()) {
+				likeNum++;
+			}
+		}
+		System.out.println(likeNum);
 	}
 
 	// 상세보기 기능
@@ -192,11 +207,18 @@ public class App {
 				System.out.println("[댓글 등록 기능 구현]");
 				if (loginCheck()) {
 					commentAdd(a.getNo());
+					readPost(a);
 				} else {
 					System.out.println("로그인이 필요한 기능입니다.");
 				}
 			} else if (rcmd == 2) {
 				System.out.println("[좋아요]");
+				if (loginCheck()) {
+					like(a.getNo());
+					readPost(a);
+				} else {
+					System.out.println("로그인이 필요한 기능입니다.");
+				}
 			} else if (rcmd == 3) {
 				System.out.println("[수정]");
 			} else if (rcmd == 4) {
@@ -205,6 +227,49 @@ public class App {
 				break;
 			}
 		}
+
+	}
+
+	private void like(int postNo) {
+		String regDate = getCurrentData();
+		
+		int index = userLiked(postNo);
+		if(index == -1) {
+			Like l = new Like(postNo, loginedUser.getLoginId(), regDate);
+			likes.add(l);
+			System.out.println(loginedUser.getLoginId());
+			System.out.println("좋아요완료");
+			System.out.println(postNo);
+			System.out.println(index);
+			System.out.println(loginedUser.getLoginId());
+		}
+		else {
+			for(int i = 0; i < likes.size(); i++) {
+				Like l = likes.get(i);
+				if(l.getPostNo() == postNo) {
+					if(l.getLikedUser() == loginedUser.getLoginId()) {
+						likes.remove(i);
+						System.out.println("좋아요 해제");
+					}
+				}
+			}
+			
+		}
+	}
+
+	private int userLiked(int postNo) {
+		
+		int index = -1;
+		
+		for(int i = 0; i < likes.size(); i++) {
+			Like l = likes.get(i);
+			if(l.getLikedUser() == loginedUser.getLoginId() && l.getPostNo() == postNo){
+				index = i;
+				break;
+			}
+		}
+		
+		return index;
 
 	}
 
@@ -217,7 +282,6 @@ public class App {
 		comments.add(c);
 
 		System.out.println("댓글 등록이 완료되었습니다.");
-		read();
 	}
 
 	// 함수 -> 기능
