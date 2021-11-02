@@ -57,11 +57,11 @@ public class App {
 			} else if (command.equals("list")) {
 				list(articles);
 
-			} else if (command.equals("update")) {
-				update();
-
-			} else if (command.equals("delete")) {
-				delete();
+//			} else if (command.equals("")) {
+//				update();
+//
+//			} else if (command.equals("delete")) {
+//				delete();
 
 			} else if (command.equals("search")) {
 				search();
@@ -144,7 +144,7 @@ public class App {
 	public void read() {
 		System.out.print("상세보기할 게시물 선택 : ");
 		int no = Integer.parseInt(sc.nextLine());
-		int index = getIndexByAritlceNo(no);
+		int index = getIndexByArticleNo(no);
 		Article a = articles.get(index);
 		if (index != -1) {
 			readPost(a);
@@ -162,7 +162,7 @@ public class App {
 		System.out.println("-------------------");
 		System.out.println("내용 : " + a.getBody());
 		System.out.println("-------------------");
-		System.out.println("작성자 : 익명");
+		System.out.println("작성자 : " + a.getWriter());
 		System.out.println("등록날짜: " + a.getRegDate());
 		System.out.println("======= 댓글 =======");
 		if (comments.size() == 0) {
@@ -221,8 +221,10 @@ public class App {
 				}
 			} else if (rcmd == 3) {
 				System.out.println("[수정]");
+				update(a);
 			} else if (rcmd == 4) {
 				System.out.println("[삭제]");
+				delete(a);
 			} else if (rcmd == 5) {
 				break;
 			}
@@ -308,7 +310,7 @@ public class App {
 
 	// ===========================================================
 	// 번호로 게시물 인덱스 찾는 함수
-	public int getIndexByAritlceNo(int no) {
+	public int getIndexByArticleNo(int no) {
 
 		int index = -1; // 0이 아닌 이유 : 값이 없을 경우 없다는 것을 표현하기 위함. 0은 인덱스로서 의미를 가지니까
 
@@ -327,41 +329,46 @@ public class App {
 
 	// ===========================================================
 	// 게시물을 삭제하는 함수
-	public void delete() {
-		System.out.println("삭제할 게시물 선택 : ");
-		int no = Integer.parseInt(sc.nextLine());
-		int index = getIndexByAritlceNo(no);
+	public void delete(Article index) {
 
-		if (index != -1) {
-			articles.remove(index);
+		if (index.getWriter() == loginedUser.getNickname()) {
+			articles.remove(getIndexByArticleNo(index.getNo()));
 		} else {
-			System.out.println("없는 게시물입니다.");
+			System.out.println("삭제 권한이 없습니다.");
 		}
 	}
 
 	// ===========================================================
 	// 게시물을 수정해주는 함수
-	public void update() {
-		System.out.println("수정할 게시물 선택 : ");
-		int no = Integer.parseInt(sc.nextLine());
-
-		int index = getIndexByAritlceNo(no);
-
-		if (index != -1) {
+	public void update(Article index) {
+//		System.out.println("수정할 게시물 선택 : ");
+//		int no = Integer.parseInt(sc.nextLine());
+//
+//		int index = getIndexByAritlceNo(no);
+//
+//		if (index != -1) {
+		
+		if(index.getWriter() == loginedUser.getNickname()) {
 			System.out.print("새제목 : ");
 			String title = sc.nextLine();
 			System.out.print("새내용 : ");
 			String body = sc.nextLine();
-
-			Article a = articles.get(index);
+			
+			Article a = articles.get(getIndexByArticleNo(index.getNo()));
 			a.setTitle(title);
 			a.setBody(body);
-
-			articles.set(index, a);
-
-		} else {
-			System.out.println("없는 게시물입니다.");
+			
+			articles.set(getIndexByArticleNo(index.getNo()), a);
+			
+			System.out.println("수정이 완료되었습니다.");
 		}
+		else {
+			System.out.println("수정 권한이 없습니다.");
+		}
+
+//		} else {
+//			System.out.println("없는 게시물입니다.");
+//		}
 	}
 
 	// ===========================================================
